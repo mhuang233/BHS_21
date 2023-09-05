@@ -57,7 +57,8 @@ arg <- data.frame(
   ni = c(rep(150, 9), rep(50, 9)),
   nj = c(rep(30, 9), rep(10, 9)),
   icc = rep(c(0.1, 0.2, 0.3),6),
-  sigma = rep(c(0, 1, 5), each = 3)
+  sigma = rep(c(0, 1, 5), each = 3),
+  gb = c(rep(45, 9), rep(10, 9))
 )
 
 args <- do.call("rbind", replicate(100, arg, simplify = FALSE))
