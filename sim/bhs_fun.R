@@ -92,7 +92,7 @@ alz <- function(rep, c, ni, nj, icc, df1, df2, model_strings, var_names){
     a <- stan_lmer(as.formula(model_strings[k]), data = df1, 
                    prior_intercept = student_t(3, 400, 10), 
                    prior_covariance = decov(scale = 0.50), 
-                   iter = 10000, chains = 4, 
+                   iter = 5000, chains = 4, 
                    adapt_delta=.999, thin=10)
     
     b <- log_lik(a, merge_chains = FALSE) #loo(log_lik(a), r_eff = NA)
@@ -180,9 +180,9 @@ alz <- function(rep, c, ni, nj, icc, df1, df2, model_strings, var_names){
   dt_bhs <- list(N = N, d = d, K = K, X = X, 
                  lpd_point = lpd_point, tau_mu = 1, tau_con = 1)
   
-  bhs_model <- stan_model(file = "bhs_con.stan")
+  # bhs_model <- stan_model(file = "bhs_con.stan")
   time_bhs <- system.time(
-    fit_bhs <- sampling(object = bhs_model, data = dt_bhs, iter = 10000, control = list(adapt_delta = .999)))
+    fit_bhs <- stan("bhs_con.stan", data = dt_bhs, chains = 4))
   
   # Obtain the weights and the softmax function
   wts_bhs <- rstan::extract(fit_bhs, pars = 'w')$w

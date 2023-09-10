@@ -184,7 +184,7 @@ alz_all <- function(rep, c, ni, nj, icc, df1, df2, cov1, cov3){
                     tau_sigma = 1, tau_discrete = .5, tau_con = 1)
   
   time_all_bhs <- system.time(
-    fit_bhs_all <- stan("bhs_stan.stan", data = dt_bhs_all, chains = 4))
+    fit_bhs_all <- stan("bhs_con.stan", data = dt_bhs_all, iter= 10000, chains = 4))
 
   # Obtain the weights and the softmax function
   wts_bhs_all <- rstan::extract(fit_bhs_all, pars = 'w')$w
