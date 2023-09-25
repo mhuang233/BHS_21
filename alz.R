@@ -3,7 +3,6 @@
 
 ### :::::: Summarize the results :::::: ###
 {
-  library(tidyverse)
   library(data.table)
   library(rstanarm)
   library(rstan)
@@ -16,6 +15,7 @@
   library(abind)
   library(dplyr)
   library(stringr)
+  library(tidyverse)
 }
 
 ### load the results
