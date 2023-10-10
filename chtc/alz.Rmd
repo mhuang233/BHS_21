@@ -103,6 +103,7 @@ return(out)
 # run
 ## sigma = 0
 ```{r}
+
 # sigma = 0
 a <- alz(ni = 50, nj = 10, icc = 0.1, sigma = 0)
 b <- alz(ni = 150, nj = 30, icc = 0.1, sigma = 0)
@@ -143,17 +144,32 @@ ws_sigma5 <- rbind(g$ws_mean, h$ws_mean, i$ws_mean,
 
 ## figures
 ```{r}
-ws_sigma0 %>% ggplot() +
-  geom_bar(aes(x = model, y = weights, fill = methods),
-           position = "stack", stat = "identity")+
-  theme_bw()+
-  facet_grid(N~icc)
+mod_labels <- c("M1","M2","M3","M4","M5","M6","M7","M8","M9","M10","M11","M12","M13","M14","M15")
 
-ws_sigma5 %>% ggplot() +
-  geom_bar(aes(x = model, y = weights, fill = methods),
+p1 <- ws_sigma0 %>% ggplot() +
+  geom_bar(aes(x = factor(model, levels = mod_labels), 
+               y = weights, fill = methods),
+           position = "stack", stat = "identity") +
+  theme_bw() +
+  facet_grid(N~icc, labeller = label_both) + 
+  labs(x = "models")
+
+p2 <- ws_sigma5 %>% ggplot() +
+  geom_bar(aes(x = factor(model, levels = mod_labels), y = weights, fill = methods),
            position = "stack", stat = "identity")+
   theme_bw()+
-  facet_grid(N~icc)
+  facet_grid(N~icc, labeller = label_both)+
+  labs(x = "models")
+
+p1
+p2
+
+wid <- 
+hei <- 
+
+ggsave("ws_sigma0.png", plot = p1, width = wid, height = hei)
+ggsave("ws_sigma5.png", plot = p2, width = wid, height = hei)
+
 ```
 ## in case of bw requirement
 ```{r}
@@ -162,6 +178,7 @@ ws_sigma0 %>% ggplot() +
            position = "stack", stat = "identity")+
   scale_fill_brewer(type = "seq", palette = "Greys")+
   theme_bw()
+
 ```
 
 # kld
@@ -174,6 +191,7 @@ kld_sigma0 <- rbind(a$kld_mean, b$kld_mean, c$kld_mean,
 kld_sigma5 <- rbind(g$kld_mean, h$kld_mean, i$kld_mean, 
                    j$kld_mean, k$kld_mean, l$kld_mean)%>% 
   pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "kld")
+
 ```
 
 
