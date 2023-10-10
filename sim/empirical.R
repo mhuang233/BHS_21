@@ -24,6 +24,17 @@ df <- df0 %>%
 
 sch <- table(df$SchoolID);sch # check the number of students in each school.
 
+dt0 %>%
+  group_by(SchoolID)%>%
+  summarise(n=n()) # 149 in total
+
+# Randomly select 20 students in each group
+dt <- dt0 %>% group_by(SchoolID) %>% slice_sample(n = 20)
+
+# For the small dataset
+df1 <- dt[1:200, ]
+df2 <- dt[201:400, ]
+
 df1 <- df[1:2419,] # training
 df2 <- df[2420:4838,] # testing
 
@@ -39,26 +50,25 @@ bms <- list()
 
 bms[[1]] <- stan_lmer(
   PV1READ ~ Female + ESCS + HOMEPOS + ICTRES + (1 + ICTRES|SchoolID), data = df1, 
-  prior_intercept = student_t(3, 470, 100),
-  iter = 5000, chains = 4,
+  prior_intercept = student_t(3, 470, 100),iter = 10000,
   adapt_delta=.999,thin=10)
 
 
 bms[[2]] <- stan_lmer(
   PV1READ ~ JOYREAD + PISADIFF + SCREADCOMP + SCREADDIFF + (1 |SchoolID),
-  data = df1, prior_intercept = student_t(3, 470, 100),iter = 5000, chains = 4,
+  data = df1, prior_intercept = student_t(3, 470, 100),iter = 10000,
   adapt_delta=.999,thin=10)
 
 
 bms[[3]] <- stan_lmer(
   PV1READ ~ METASUM + GFOFAIL + MASTGOAL + SWBP + WORKMAST + ADAPTIVITY + COMPETE + (1 |SchoolID),
-  data = df1, prior_intercept = student_t(3, 470, 100),iter = 5000, chains = 4,
+  data = df1, prior_intercept = student_t(3, 470, 100),iter = 10000,
   adapt_delta=.999,thin=10)
 
 
 bms[[4]] <- stan_lmer(
   PV1READ ~  PERFEED + BELONG + TEACHINT + (1 + TEACHINT|SchoolID),
-  data = df1, prior_intercept = student_t(3, 470, 100),iter = 5000, chains = 4,
+  data = df1, prior_intercept = student_t(3, 470, 100),iter = 10000,
   adapt_delta=.999,thin=10)
 
 
@@ -83,7 +93,7 @@ dt_bhs <- list(X = X, N = nrow(X), d = ncol(X), d_discrete = d_discrete,
                   lpd_point = lpd_points, K = ncol(lpd_points), tau_mu = 1,
                   tau_sigma = 1, tau_discrete = .5, tau_con = 1)
 
-fit_bhs <- stan("bhs_discon.stan", data = dt_bhs, iter = 5000)
+fit_bhs <- stan("bhs_discon.stan", data = dt_bhs, iter = 10000)
 
 wts_bhs <- rstan::extract(fit_bhs, pars = 'w')$w
 w_bhs <- apply(wts_bhs, c(2,3), mean)
@@ -146,9 +156,6 @@ kld4 <- KLD(d4, d0)$sum.KLD.py.px
 
 
 # results
-d4 <- density(y_bhs, kernel = c("gaussian"))$y
-kld4 <- KLD(d4, d0)$sum.KLD.py.px
-
 ws <- data.frame(as.matrix(w_bs), as.matrix(w_pbma), as.matrix(w_pbmabb), w_bhs_m) %>% 
   round(3)
 klds <- rbind(kld1, kld2, kld3, kld4)
@@ -163,6 +170,8 @@ library(psych)
 means <- describe(X) %>% select(mean)
 sds <- describe(X) %>% select(sd)
 
-
-
+### for small sample sizes
+### Subset
+sch <- table(df$SchoolID)
+dt0  <- subset(df, SchoolID %in% names(sch[sch > 20]))
 
