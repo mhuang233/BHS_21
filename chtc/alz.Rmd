@@ -76,22 +76,33 @@ assign(paste0("ws_all_sd", ni, "_", nj, "_icc", "_sigma", sigma), ws_sd)
 klds <- mget(intersect(ls(pattern = paste0("kld_")), ls(pattern = paste0(ni, "_", nj, "_icc", icc, "_sigma", sigma))))%>%
       abind(along = 3)
 
-q <- klds %>% apply(., 1:2, mean) %>% round(3)
-kld_mean <- data.frame(N = ni*nj, icc = icc, q)
-kld_sd <- klds %>% apply(., 1:2, sd) %>% round(3)
+kld_dist <- klds %>% apply(., 2:3, mean) %>% as.data.frame() %>% 
+  mutate(methods = rownames(.)) %>% 
+  pivot_longer(cols = !methods, names_to = "index", values_to = "kld_mean") %>% 
+  mutate(N = rep(ni*nj, nrow(.)), icc = rep(icc, nrow(.))) %>% 
+  select(!index)
+  
+kld_mean <- klds %>% apply(., 1:2, mean)
 
+kld_mean <- data.frame(icc = icc, N = ni*nj, kld_mean)
+kld_sd <- klds %>% apply(., 2, sd)
+kld_sd <- data.frame(icc = icc, N = ni*nj, methods =names(kld_sd), kld_sd = kld_sd)
+
+
+assign(paste0("kld_dist", ni, "_", nj, "_icc", icc, "_sigma", sigma), kld_dist)
 assign(paste0("kld_all_mean", ni, "_", nj, "_icc", icc, "_sigma", sigma), kld_mean)
 assign(paste0("kld_all_sd", ni, "_", nj, "_icc", icc, "_sigma", sigma), kld_sd)
 
 times <- mget(intersect(ls(pattern = paste0("time_")), ls(pattern = paste0(ni, "_", nj, "_icc", icc, "_sigma", sigma))))%>%
       abind(along = 3)
-time_mean <- times %>% apply(., 1:2, mean) %>% round(3)
+time_all_mean <- times %>% apply(., 1:2, mean) %>% as.data.frame()
+time_mean <- data.frame(icc = icc, N = ni*nj, time_all_mean[1,])
 # time_sd <- times %>% apply(., 1:2, sd)
 
 assign(paste0("time_all_mean", ni, "_", nj, "_icc", icc, "_sigma", sigma), time_mean[1, ])
 # assign(paste0("time_all_sd", ni, "_", nj, "_icc", icc, "_sigma", sigma), time_sd)
 
-out <- list("ws_mean" = ws_mean, "ws_sd" = ws_sd, 
+out <- list("ws_mean" = ws_mean, "ws_sd" = ws_sd, "kld_dist" = kld_dist,
             "kld_mean" = kld_mean, "kld_sd" = kld_sd, "time_mean" = time_mean[1, ])
 return(out)
 
@@ -135,6 +146,7 @@ l <- alz(ni = 150, nj = 30, icc = 0.3, sigma = 5)
 # weights
 ## aggregation
 ```{r}
+
 ws_sigma0 <- rbind(a$ws_mean, b$ws_mean, c$ws_mean, 
                    d$ws_mean, e$ws_mean, f$ws_mean)
 
@@ -142,33 +154,32 @@ ws_sigma5 <- rbind(g$ws_mean, h$ws_mean, i$ws_mean,
                    j$ws_mean, k$ws_mean, l$ws_mean)
 ```
 
-## figures
+## bar charts
 ```{r}
+
 mod_labels <- c("M1","M2","M3","M4","M5","M6","M7","M8","M9","M10","M11","M12","M13","M14","M15")
 
 p1 <- ws_sigma0 %>% ggplot() +
   geom_bar(aes(x = factor(model, levels = mod_labels), 
                y = weights, fill = methods),
            position = "stack", stat = "identity") +
-  theme_bw() +
   facet_grid(N~icc, labeller = label_both) + 
-  labs(x = "models")
+ theme_bw()+labs(x = "models")
 
 p2 <- ws_sigma5 %>% ggplot() +
   geom_bar(aes(x = factor(model, levels = mod_labels), y = weights, fill = methods),
            position = "stack", stat = "identity")+
-  theme_bw()+
   facet_grid(N~icc, labeller = label_both)+
-  labs(x = "models")
+  theme_bw()+labs(x = "models")
 
 p1
 p2
 
-wid <- 
-hei <- 
+#wid <- 
+#hei <- 
 
-ggsave("ws_sigma0.png", plot = p1, width = wid, height = hei)
-ggsave("ws_sigma5.png", plot = p2, width = wid, height = hei)
+#ggsave("ws_sigma0.png", plot = p1, width = wid, height = hei)
+#ggsave("ws_sigma5.png", plot = p2, width = wid, height = hei)
 
 ```
 ## in case of bw requirement
@@ -184,18 +195,51 @@ ws_sigma0 %>% ggplot() +
 # kld
 ## aggregation for weights
 ```{r}
-kld_sigma0 <- rbind(a$kld_mean, b$kld_mean, c$kld_mean, 
+# mean of klds
+mean_kld0 <- rbind(a$kld_mean, b$kld_mean, c$kld_mean, 
                    d$kld_mean, e$kld_mean, f$kld_mean) %>% 
-  pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "kld")
+  pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "kld_mean")
 
-kld_sigma5 <- rbind(g$kld_mean, h$kld_mean, i$kld_mean, 
+mean_kld5 <- rbind(g$kld_mean, h$kld_mean, i$kld_mean, 
                    j$kld_mean, k$kld_mean, l$kld_mean)%>% 
-  pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "kld")
+  pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "kld_mean")
+
+
+# sd of klds
+sd_kld0 <- rbind(a$kld_sd, b$kld_sd, c$kld_sd, 
+                   d$kld_sd, e$kld_sd, f$kld_sd) 
+sd_kld5 <- rbind(g$kld_sd, h$kld_sd, i$kld_sd, 
+                   j$kld_sd, k$kld_sd, l$kld_sd)
+
+# dist of klds
+dist_kld0 <- rbind(a$kld_dist, b$kld_dist, c$kld_dist, 
+                   d$kld_dist, e$kld_dist, f$kld_dist)
+
+dist_kld5 <- rbind(g$kld_dist, h$kld_dist, i$kld_dist, 
+                   j$kld_dist, k$kld_dist, l$kld_dist)
 
 ```
 
+# boxplot 
+```{r}
+dist_kld0 %>% ggplot() +
+  geom_boxplot(aes(x = methods, y = kld_mean))+
+  facet_grid(N ~ icc)+
+  theme_bw() + labs(y = "KLD", x = "Methods")
+  
+```
 
+# time
+```{r}
+time0 <- rbind(a$time_mean, b$time_mean, c$time_mean, 
+                   d$time_mean, e$time_mean, f$time_mean) %>% 
+  pivot_longer(bs.:bhs., names_to = "methods", values_to = "time")
 
+time5 <- rbind(g$time_mean, h$time_mean, i$time_mean, 
+                   j$time_mean, k$time_mean, l$time_mean)%>% 
+  pivot_longer(bs.:bhs., names_to = "methods", values_to = "time")
+
+```
 
 
 
