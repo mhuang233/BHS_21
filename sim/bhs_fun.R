@@ -31,7 +31,7 @@ dgf <- function(ni, nj, gamma00, gamma01, gamma02, gamma03, gamma04, u_0, w_0, s
   covW <- sdW%*%corW%*%sdW
   J <- covW
   
-  # for outer loop or the macro level --> school leveles
+  # for outer loop or the macro level --> school levels
   for (i in 1:ni){
     
     U[i,1] <- I[1,1]*rnorm(1, 0, .5)
@@ -198,7 +198,6 @@ alz <- function(rep, c, ni, nj, icc, df1, df2, model_strings, var_names){
   
   y_bhs <- colMeans(ypred_bhs)
   
-  # lpd_bhs <- lpd_point*w_bhs_r
   
   # KLD
   d4 <- density(y_bhs, kernel = c("gaussian"))$y

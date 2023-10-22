@@ -64,8 +64,6 @@ source("fun_bhs.R")
 }
 
 
-
-
 # Output
 out <- rep(n_rep = n_rep, ni, nj, gamma00, gamma01, gamma02, gamma03, gamma04, gamma05, gamma06,
            gamma07, gamma08, gamma09, gamma10, gamma11, gamma12, gamma13, 
