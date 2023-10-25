@@ -148,10 +148,16 @@ l <- alz(ni = 150, nj = 30, icc = 0.3, sigma = 5)
 ```{r}
 
 ws_sigma0 <- rbind(a$ws_mean, b$ws_mean, c$ws_mean, 
-                   d$ws_mean, e$ws_mean, f$ws_mean)
+                   d$ws_mean, e$ws_mean, f$ws_mean) %>% 
+  mutate(methods = recode(methods, 'pbmabb' = 'pbmaplus'))
+  
 
 ws_sigma5 <- rbind(g$ws_mean, h$ws_mean, i$ws_mean, 
-                   j$ws_mean, k$ws_mean, l$ws_mean)
+                   j$ws_mean, k$ws_mean, l$ws_mean)%>% 
+  mutate(methods = recode(methods, 'pbmabb' = 'pbmaplus'))
+
+
+
 ```
 
 ## bar charts
@@ -175,11 +181,11 @@ p2 <- ws_sigma5 %>% ggplot() +
 p1
 p2
 
-#wid <- 
-#hei <- 
+wid <- 3456
+hei <- 1989
 
-#ggsave("ws_sigma0.png", plot = p1, width = wid, height = hei)
-#ggsave("ws_sigma5.png", plot = p2, width = wid, height = hei)
+ggsave("ws_sigma0.png", plot = p1, width = wid, height = hei, limitsize = FALSE)
+ggsave("ws_sigma5.png", plot = p2, width = wid, height = hei, limitsize = FALSE)
 
 ```
 ## in case of bw requirement
