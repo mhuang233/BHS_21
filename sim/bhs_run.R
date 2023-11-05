@@ -57,9 +57,9 @@ set.seed(c)
 
 df <- dgf(ni, nj, gamma00, gamma01, gamma02, gamma03, gamma04, u_0, w_0, sigma)
 
-nr <- nrow(df)
-df1 <- df[1:(nr/2), ]
-df2 <- df[(nr/2+1):nr, ]
+#nr <- nrow(df)
+#df1 <- df[1:(nr/2), ]
+#df2 <- df[(nr/2+1):nr, ]
 
 # function
 #extract_lpd <- function(x){
@@ -111,7 +111,7 @@ var_names <- c(
 ) 
 
 # run
-alz(rep, c, ni, nj, icc, df1, df2, model_strings, var_names)
+alz(rep, c, ni, nj, icc, df, model_strings, var_names)
 
 
 

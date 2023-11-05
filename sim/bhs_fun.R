@@ -85,11 +85,11 @@ dgf <- function(ni, nj, gamma00, gamma01, gamma02, gamma03, gamma04, u_0, w_0, s
 # icc <- var_b / (var_b + var_w)
 # choose icc from .10, .20, .30 from Heges' range form .1 to .25.
 
-alz <- function(rep, c, ni, nj, icc, df1, df2, model_strings, var_names){
+alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
   
   for (k in 1:15){
     
-    a <- stan_lmer(as.formula(model_strings[k]), data = df1, 
+    a <- stan_lmer(as.formula(model_strings[k]), data = df, 
                    prior_intercept = student_t(3, 400, 10), 
                    prior_covariance = decov(scale = 0.50), 
                    iter = 5000, chains = 4, 
@@ -136,7 +136,7 @@ alz <- function(rep, c, ni, nj, icc, df1, df2, model_strings, var_names){
   y_bs <- colMeans(ypred_bs)
   
   d1 <- density(y_bs, kernel = c("gaussian"))$y
-  d0 <- density(df1$y, kernel = c("gaussian"))$y
+  d0 <- density(df$y, kernel = c("gaussian"))$y
   
   kld1 <- KLD(d1, d0)$sum.KLD.py.px
   
@@ -168,7 +168,7 @@ alz <- function(rep, c, ni, nj, icc, df1, df2, model_strings, var_names){
   
   # bhs
   # Build the model
-  X <- df2 %>% select(x1, x2, x3, x4)
+  X <- df %>% select(x1, x2, x3, x4)
   N <- nrow(X)
   d <- ncol(X)
   lpd_point <- do.call(cbind, lapply(loo_bms, extract_lpd))

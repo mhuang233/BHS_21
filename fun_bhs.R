@@ -89,8 +89,8 @@ est <- function(df, gamma00, gamma01, gamma02, gamma03, gamma04, gamma05, gamma0
     bhs_r <- list()
     pars <- list()
     loo_bs_r <- list()
-    df1 <- df[1:(nrow(df)/2), ] # split into half
-    df2 <- df[(nrow(df)/2+1):nrow(df), ]
+    #df1 <- df[1:(nrow(df)/2), ] # split into half
+    #df2 <- df[(nrow(df)/2+1):nrow(df), ]
     
     # Softmax function
     softmax <- function (x) {
@@ -101,28 +101,28 @@ est <- function(df, gamma00, gamma01, gamma02, gamma03, gamma04, gamma05, gamma0
   
   
   bs_r[[1]] <- stan_lmer(
-    y ~ x1 + x2 + x3 + (1 |i), data = df1, 
+    y ~ x1 + x2 + x3 + (1 |i), data = df, 
     prior_intercept = student_t(3, 400, 10),
     prior_covariance = decov(scale = 0.50),
     iter = 10000, chains = 4, QR=TRUE,
     adapt_delta=.999,thin=10)
   
   bs_r[[2]] <- stan_lmer(
-    y ~ x4 + x5 + x6 + x13 + (1 + x13 |i), data = df1, 
+    y ~ x4 + x5 + x6 + x13 + (1 + x13 |i), data = df, 
     prior_intercept = student_t(3, 400, 10), 
     prior_covariance = decov(scale = 0.50),
     iter = 10000, chains = 4, QR=TRUE,
     adapt_delta=.999,thin=10)
   
   bs_r[[3]] <- stan_lmer(
-    y ~  x7 + x8 + x9 + (1 |i), data = df1, 
+    y ~  x7 + x8 + x9 + (1 |i), data = df, 
     prior_intercept = student_t(3, 400, 10),
     prior_covariance = decov(scale = 0.50),
     iter = 10000, chains = 4, QR=TRUE,
     adapt_delta=.999,thin=10)
   
   bs_r[[4]] <- stan_lmer(
-    y ~ x10 + x11 + x12 + x14 + (1 + x14 |i), data = df1, 
+    y ~ x10 + x11 + x12 + x14 + (1 + x14 |i), data = df, 
     prior_intercept = student_t(3, 400, 10),
     prior_covariance = decov(scale = 0.50),
     iter = 10000, chains = 4, QR=TRUE,
@@ -234,10 +234,10 @@ est <- function(df, gamma00, gamma01, gamma02, gamma03, gamma04, gamma05, gamma0
   
   y_bma <- colMeans(ypred_bma)
   
-  d1 <- density(y_bma, kernel = c("gaussian"))$y
+  d3 <- density(y_bma, kernel = c("gaussian"))$y
   d0 <- density(df1$y, kernel = c("gaussian"))$y
   
-  kld2 <- KLD(d1, d0)$sum.KLD.py.px
+  kld2 <- KLD(d2, d0)$sum.KLD.py.px
   
   
   # pbmabb
@@ -250,17 +250,17 @@ est <- function(df, gamma00, gamma01, gamma02, gamma03, gamma04, gamma05, gamma0
   
   y_bmabb <- colMeans(ypred_bmabb)
   
-  d1 <- density(y_bmabb, kernel = c("gaussian"))$y
+  d3 <- density(y_bmabb, kernel = c("gaussian"))$y
   d0 <- density(df1$y, kernel = c("gaussian"))$y
   
-  kld3 <- KLD(d1, d0)$sum.KLD.py.px
+  kld3 <- KLD(d3, d0)$sum.KLD.py.px
   
   
   ### ::: BHS ::: ###
   
   # Build the model
   d_discrete = 1
-  X =  df2[,c("x1", "x2", "x3", "x4", "x5","x6","x7","x8","x9","x10","x11","x12","x13", "x14")] # 5 in total 
+  X =  df[,c("x1", "x2", "x3", "x4", "x5","x6","x7","x8","x9","x10","x11","x12","x13", "x14")] # 5 in total 
   
   stan_bsr <- list(X = X, N = nrow(X), d = ncol(X), d_discrete = d_discrete,
                    lpd_point = lpd_point, K = ncol(lpd_point), tau_mu = 1,
@@ -289,8 +289,8 @@ est <- function(df, gamma00, gamma01, gamma02, gamma03, gamma04, gamma05, gamma0
   # lpd_bhs <- lpd_point*w_bhs_r
   
   # KLD
-  d2 <- density(y_bhs_r, kernel = c("gaussian"))$y
-  kld4 <- KLD(d2, d0)$sum.KLD.py.px
+  d4 <- density(y_bhs_r, kernel = c("gaussian"))$y
+  kld4 <- KLD(d4, d0)$sum.KLD.py.px
   
  
   # summarize the weights and lpd
