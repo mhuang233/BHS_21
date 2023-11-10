@@ -108,10 +108,12 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
   
   f <- ls(pattern = "bms_x", all.names = T)
   bms_all <- do.call(list, mget(f))
+  print(bms_all)
   
   # all
   d <- ls(pattern = "loglik_x", all.names = T)
   loglik_all <- do.call(list, mget(d))
+  print(bms_all)
   
   time_loo <- system.time(loo_bms <- lapply(loglik_all, loo, cores = 4))
   
@@ -133,7 +135,7 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
     ypred_bs[d, ] <- posterior_predict(bms_all[[k]], draws = 1)
   }
   
-  y_bs <- colMeans(ypred_bs)
+  y_bs <- colMeans(ypred_bs);print(ypred_bs);print(y_bs)
   
   d1 <- density(y_bs, kernel = c("gaussian"))$y
   d0 <- density(df$y, kernel = c("gaussian"))$y
@@ -147,7 +149,7 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
     ypred_pbma[d, ] <- posterior_predict(bms_all[[k]], draws = 1)
   }
   
-  y_pbma <- colMeans(ypred_pbma)
+  y_pbma <- colMeans(ypred_pbma);print(ypred_pbma);print(ypred_pbma)
   
   d2 <- density(y_pbma, kernel = c("gaussian"))$y
   
@@ -160,7 +162,7 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
     ypred_pbmabb[d, ] <- posterior_predict(bms_all[[k]], draws = 1)
   }
   
-  y_pbmabb <- colMeans(ypred_pbmabb)
+  y_pbmabb <- colMeans(ypred_pbmabb);print(ypred_pbmabb);print(ypred_pbmabb)
   
   d3 <- density(y_pbmabb, kernel = c("gaussian"))$y
   
@@ -182,7 +184,9 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
   
   # bhs_model <- stan_model(file = "bhs_con.stan")
   time_bhs <- system.time(
-    fit_bhs <- stan("bhs_con.stan", data = dt_bhs, chains = 4))
+    fit_bhs <- stan("bhs_con.stan", data = dt_bhs, iter = 5000, chains = 4))
+  
+  print(fit_bhs)
   
   # Obtain the weights and the softmax function
   wts_bhs <- rstan::extract(fit_bhs, pars = 'w')$w
@@ -196,7 +200,7 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
     ypred_bhs[d, ] <- posterior_predict(bms_all[[k]], draws = 1)
   }
   
-  y_bhs <- colMeans(ypred_bhs)
+  y_bhs <- colMeans(ypred_bhs);print(ypred_bhs);print(y_bhs)
   
   
   # KLD
@@ -206,12 +210,15 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
   ws <- data.frame(as.matrix(w_bs), as.matrix(w_pbma), as.matrix(w_pbmabb), w_bhs_m)
   klds <- rbind(kld1, kld2, kld3, kld4) %>% as.data.frame()
   
-  time <- data.frame(as.numeric(time_bs), as.numeric(time_pbma), 
-                         as.numeric(time_pbmabb), as.numeric(time_bhs))
+  time <- rbind(t(data.matrix(time_bs)), t(data.matrix(time_pbma)), 
+                     t(data.matrix(time_pbmabb)), t(data.matrix(time_bhs))) %>% as.data.frame()
   
   cnames <- c("bs","pbma", "pbmabb", "bhs")  
   rownames(klds) <- cnames
   colnames(ws) <- cnames
+  colnames(time) <- cnames
+  
+  print(klds);print(ws);print(time)
   
   # n_eff and rhat
   # f <- ls(pattern = "converge_", all.names = T)
@@ -223,13 +230,24 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
   assign(paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_kld"), klds)
   assign(paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_time"), time)
   
+  print(paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_ws"))
+  print(paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_kld"))
+  print(paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_time"))
+                  
   save(list = c(paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_ws"), 
                 paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_kld"),
                 paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_time")),
        file = paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_out.RData"))
   
+  file_path <- paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_out.RData")
+  if (file.exists(file_path)) {
+    print("The file exists!")
+  } else {
+    print("The file does not exist.")}
+  
   file.copy(from = paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_out.RData"),
             to = paste0("/staging/mhuang233/rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_out.RData"))
+  
   
   file.remove(paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_icc", icc, "_sigma", sigma, "_out.RData"))
   

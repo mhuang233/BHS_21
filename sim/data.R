@@ -73,21 +73,22 @@ write.table(arguement, file = "arg.txt",
 # large
 arg <- read.table("arg.txt")
 
-seed <- arg[,2] %>% unique() saveRDS()
+seed <- arg[,2] %>% unique()
 
 # saveRDS(seed, file = "seed.rds")
 argl <- data.frame(
   ni = rep(150, 9),
   nj = rep(30, 9),
   icc = rep(c(0.1, 0.2, 0.3), 3),
-  sigma = rep(c(0, 1, 5), each = 3),
+  sigma = rep(c(0, 5, 10), each = 3),
   gb = rep(40, 9)
 )
 
 args <- do.call("rbind", replicate(100, argl, simplify = FALSE))
 reps <- rep(1:100, each = 9) 
 seeds <- rep(seed, each = 9)
-arguement <- cbind(reps, seeds, args)
+arguement <- cbind(reps, seeds, args) 
+
 
 write.table(arguement, file = "argl.txt",
             col.names = F, row.names = F)
