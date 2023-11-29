@@ -77,16 +77,16 @@ seed <- arg[,2] %>% unique()
 
 # saveRDS(seed, file = "seed.rds")
 argl <- data.frame(
-  ni = rep(150, 9),
-  nj = rep(30, 9),
-  icc = rep(c(0.1, 0.2, 0.3), 3),
-  sigma = rep(c(0, 5, 10), each = 3),
-  gb = rep(40, 9)
+  ni = rep(150, 6),
+  nj = rep(30, 6),
+  icc = rep(c(0.1, 0.2, 0.3), 2),
+  sigma = rep(c(0, 5), each = 3),
+  gb = rep(45, 6)
 )
 
 args <- do.call("rbind", replicate(100, argl, simplify = FALSE))
-reps <- rep(1:100, each = 9) 
-seeds <- rep(seed, each = 9)
+reps <- rep(1:100, each = 6) 
+seeds <- rep(seed, each = 6)
 arguement <- cbind(reps, seeds, args) 
 
 

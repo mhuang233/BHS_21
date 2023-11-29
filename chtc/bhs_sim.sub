@@ -2,7 +2,7 @@ universe = docker
 docker_image = mhuang233/bhs:v2
 
 executable = bhs_sim.sh
-arguments = $(rep) $(c) $(ni) $(nj) $(icc) $(sigma)
+arguments = $(rep) $(c) $(ni) $(nj) $(icc) $(sigma) $(gb)
 
 output = /home/mhuang233/bhs_sim/$(Cluster)_$(rep)_$(c)_$(ni)_$(nj)_$(icc)_$(sigma).out
 log = /home/mhuang233/bhs_sim/$(Cluster)_$(rep)_$(c)_$(ni)_$(nj)_$(icc)_$(sigma).log
@@ -16,7 +16,7 @@ transfer_input_files = bhs_fun.R, bhs_con.stan, bhs_run.R
 Requirements = (Target.HasCHTCStaging == true)
 
 request_cpus = 4
-request_memory = 20 GB
-request_disk = 5 GB
+request_memory = $(gb) GB
+request_disk = 1 GB
 
-queue rep, c, ni, nj, icc, sigma from args.txt
+queue rep, c, ni, nj, icc, sigma, gb from argl.txt

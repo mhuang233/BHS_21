@@ -1,3 +1,3 @@
 #!/bin/bash
 
-Rscript run.R $@
+Rscript bhs_run.R $@
