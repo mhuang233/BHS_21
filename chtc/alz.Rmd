@@ -97,6 +97,8 @@ times <- mget(intersect(ls(pattern = paste0("time_")), ls(pattern = paste0(ni, "
       abind(along = 3)
 time_all_mean <- times %>% apply(., 1:2, mean) %>% as.data.frame()
 time_mean <- data.frame(icc = icc, N = ni*nj, time_all_mean[1,])
+
+
 # time_sd <- times %>% apply(., 1:2, sd)
 
 assign(paste0("time_all_mean", ni, "_", nj, "_icc", icc, "_sigma", sigma), time_mean[1, ])
@@ -156,7 +158,8 @@ ws_sigma5 <- rbind(g$ws_mean, h$ws_mean, i$ws_mean,
                    j$ws_mean, k$ws_mean, l$ws_mean)%>% 
   mutate(methods = recode(methods, 'pbmabb' = 'pbmaplus'))
 
-
+ws_sigma0 %>% kable() %>% kable_styling()
+ws_sigma5 %>% kable() %>% kable_styling()
 
 ```
 
@@ -184,11 +187,11 @@ p2
 wid <- 3456
 hei <- 1989
 
-ggsave("ws_sigma0.png", plot = p1, width = wid, height = hei, limitsize = FALSE)
-ggsave("ws_sigma5.png", plot = p2, width = wid, height = hei, limitsize = FALSE)
+# ggsave("ws_sigma0.png", plot = p1, width = wid, height = hei, limitsize = FALSE)
+# ggsave("ws_sigma5.png", plot = p2, width = wid, height = hei, limitsize = FALSE)
 
 ```
-## in case of bw requirement
+## in case they want blackand white requirement
 ```{r}
 ws_sigma0 %>% ggplot() +
   geom_bar(aes(x = model, y = weights, fill = methods),
@@ -199,16 +202,24 @@ ws_sigma0 %>% ggplot() +
 ```
 
 # kld
-## aggregation for weights
+## mean of klds, round to digits = 6, sd of klds
 ```{r}
 # mean of klds
 mean_kld0 <- rbind(a$kld_mean, b$kld_mean, c$kld_mean, 
                    d$kld_mean, e$kld_mean, f$kld_mean) %>% 
-  pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "kld_mean")
+  pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "kld_mean")%>% 
+  mutate(kld_mean = round(kld_mean, 10)) 
 
 mean_kld5 <- rbind(g$kld_mean, h$kld_mean, i$kld_mean, 
                    j$kld_mean, k$kld_mean, l$kld_mean)%>% 
-  pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "kld_mean")
+  pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "kld_mean") %>% 
+  mutate(kld_mean = round(kld_mean, 10)) 
+
+#round_kld0 <- mean_kld0 %>% 
+#  mutate(kl_mean = round(kld_mean, 6)) %>% select(!kld_mean)
+
+#round_kld5 <- mean_kld5 %>% 
+#  mutate(kl_mean = round(kld_mean, 6)) %>% select(!kld_mean)
 
 
 # sd of klds
@@ -224,7 +235,30 @@ dist_kld0 <- rbind(a$kld_dist, b$kld_dist, c$kld_dist,
 dist_kld5 <- rbind(g$kld_dist, h$kld_dist, i$kld_dist, 
                    j$kld_dist, k$kld_dist, l$kld_dist)
 
+
 ```
+
+## mean of klds
+```{r}
+mean_kld0 %>% kable(., caption = "sigma0") %>% kable_styling()
+mean_kld5 %>% kable(., caption = "sigma5") %>% kable_styling()
+
+```
+
+
+```{r}
+
+### round the mean of kld
+#round_kld0 %>% kable(., caption = "sigma0") %>% kable_styling()
+#round_kld5 %>% kable(., caption = "sigma5") %>% kable_styling()
+```
+
+## SD of klds
+```{r}
+sd_kld0 %>% kable(., caption = "sigma0") %>% kable_styling()
+sd_kld5 %>% kable(., caption = "sigma5") %>% kable_styling()
+```
+
 
 # boxplot 
 ```{r}
@@ -237,13 +271,13 @@ dist_kld0 %>% ggplot() +
 
 # time
 ```{r}
-time0 <- rbind(a$time_mean, b$time_mean, c$time_mean, 
-                   d$time_mean, e$time_mean, f$time_mean) %>% 
-  pivot_longer(bs.:bhs., names_to = "methods", values_to = "time")
+#time0 <- rbind(a$time_mean, b$time_mean, c$time_mean, 
+#                   d$time_mean, e$time_mean, f$time_mean) %>% 
+#  pivot_longer(bs.:bhs., names_to = "methods", values_to = "time")
 
-time5 <- rbind(g$time_mean, h$time_mean, i$time_mean, 
-                   j$time_mean, k$time_mean, l$time_mean)%>% 
-  pivot_longer(bs.:bhs., names_to = "methods", values_to = "time")
+#time5 <- rbind(g$time_mean, h$time_mean, i$time_mean, 
+#                   j$time_mean, k$time_mean, l$time_mean)%>% 
+#  pivot_longer(bs.:bhs., names_to = "methods", values_to = "time")
 
 ```
 

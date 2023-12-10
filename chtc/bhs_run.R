@@ -1,6 +1,6 @@
 ### ::: Run ::: ###
 {
-  #rm(list = ls())
+  rm(list = ls())
   library(loo)
   library(rstan)
   # library(gtools) for combinations
@@ -26,7 +26,7 @@ rep = as.numeric(arguments[[1]])
 c = as.numeric(arguments[[2]])
 ni = as.numeric(arguments[[3]])
 nj = as.numeric(arguments[[4]])
-icc = as.numeric(arguments[[5]])
+sd = as.numeric(arguments[[5]])
 sigma = as.numeric(arguments[[6]])
 
 # ##################### CHTC - Ends ######################### - DON'T RUN ENDS #
@@ -42,8 +42,8 @@ set.seed(c)
   gamma02 <- 6
   gamma03 <- -2
   gamma04 <- 8
-  u_0 <- sqrt(icc)
-  w_0 <- sqrt(1-icc)
+  u_0 <- sd
+  w_0 <- sd
   sigma <- sigma # when sigma = 0, sigma = 5, sigma = 10, sigma = 30
   
   x <- matrix(99, nrow = ni*nj, ncol = 4)

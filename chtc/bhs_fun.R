@@ -1,3 +1,4 @@
+
 ### ::: SIMULATION FUNCTIONS ::: ###
 
 ### === data generating functions === ###
@@ -80,7 +81,6 @@ dgf <- function(ni, nj, gamma00, gamma01, gamma02, gamma03, gamma04, u_0, w_0, s
   
 }
 
-
 ### === fit the model and obtain the results === ###
 # icc <- var_b / (var_b + var_w)
 # choose icc from .10, .20, .30 from Heges' range form .1 to .25.
@@ -126,7 +126,7 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
     w_pbmabb <- loo::loo_model_weights(loo_bms, method = "pseudobma"))
   
   ### for all
-  n_draws <- nrow(as.matrix(a)) 
+  n_draws <- nrow(as.matrix(a))
   
   ypred_bs <- matrix(NA, nrow = n_draws, ncol = nobs(bms_all[[1]]))
   for (d in 1:n_draws) {
@@ -141,6 +141,7 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
   
   kld1 <- KLD(d1, d0)$sum.KLD.py.px
   write("text to print to HTCondor standard out file", stdout())
+  
   # pbma
   ypred_pbma <- matrix(NA, nrow = n_draws, ncol = nobs(bms_all[[1]]))
   for (d in 1:n_draws) {
@@ -154,6 +155,7 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
   
   kld2 <- KLD(d2, d0)$sum.KLD.py.px
   write("text to print to HTCondor standard out file", stdout())
+  
   # pbmabb
   ypred_pbmabb <- matrix(NA, nrow = n_draws, ncol = nobs(bms_all[[1]]))
   for (d in 1:n_draws) {
@@ -167,6 +169,7 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
   
   kld3 <- KLD(d3, d0)$sum.KLD.py.px
   write("text to print to HTCondor standard out file", stdout())
+  
   # bhs
   # Build the model
   X <- df %>% select(x1, x2, x3, x4)
@@ -213,9 +216,12 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
   time <- rbind(t(data.matrix(time_bs)), t(data.matrix(time_pbma)), 
                      t(data.matrix(time_pbmabb)), t(data.matrix(time_bhs))) %>% as.data.frame()
   
-  cnames <- c("bs","pbma", "pbmabb", "bhs")  
-  rownames(klds) <- cnames
-  colnames(ws) <- cnames
+  rnames <- c("bs","pbma", "pbmabb", "bhs")  
+  rownames(klds) <- rnames
+  colnames(ws) <- rnames
+  rownames(time) <- rnames
+
+  cnames <- c("user.self", "sys.self", "elapsed", "user.child", "sys.child")
   colnames(time) <- cnames
   
   print(klds);print(ws);print(time)
