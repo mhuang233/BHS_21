@@ -107,7 +107,7 @@ alz <- function(rep, c, ni, nj, sd, df, model_strings, var_names){
   
   f <- ls(pattern = "bms_x", all.names = T)
   bms_all <- do.call(list, mget(f))
-  print(bms_all)
+  #print(bms_all)
   write("text to print to HTCondor standard out file", stdout())
   # all
   d <- ls(pattern = "loglik_x", all.names = T)
@@ -140,7 +140,7 @@ alz <- function(rep, c, ni, nj, sd, df, model_strings, var_names){
   d0 <- density(df$y, kernel = c("gaussian"))$y
   
   kld1 <- KLD(d1, d0)$sum.KLD.py.px
-  write("text to print to HTCondor standard out file", stdout())
+  #write("text to print to HTCondor standard out file", stdout())
   
   # pbma
   ypred_pbma <- matrix(NA, nrow = n_draws, ncol = nobs(bms_all[[1]]))
@@ -154,7 +154,7 @@ alz <- function(rep, c, ni, nj, sd, df, model_strings, var_names){
   d2 <- density(y_pbma, kernel = c("gaussian"))$y
   
   kld2 <- KLD(d2, d0)$sum.KLD.py.px
-  write("text to print to HTCondor standard out file", stdout())
+  #write("text to print to HTCondor standard out file", stdout())
   
   # pbmabb
   ypred_pbmabb <- matrix(NA, nrow = n_draws, ncol = nobs(bms_all[[1]]))
@@ -168,7 +168,7 @@ alz <- function(rep, c, ni, nj, sd, df, model_strings, var_names){
   d3 <- density(y_pbmabb, kernel = c("gaussian"))$y
   
   kld3 <- KLD(d3, d0)$sum.KLD.py.px
-  write("text to print to HTCondor standard out file", stdout())
+  #write("text to print to HTCondor standard out file", stdout())
   
   # bhs
   # Build the model
@@ -188,8 +188,8 @@ alz <- function(rep, c, ni, nj, sd, df, model_strings, var_names){
   time_bhs <- system.time(
     fit_bhs <- stan("bhs_con.stan", data = dt_bhs, save_warmup = FALSE))
   
-  print(fit_bhs)
-  write("text to print to HTCondor standard out file", stdout())
+  #print(fit_bhs)
+  #write("text to print to HTCondor standard out file", stdout())
   
   # Obtain the weights and the softmax function
   wts_bhs <- rstan::extract(fit_bhs, pars = 'w')$w
@@ -226,7 +226,8 @@ alz <- function(rep, c, ni, nj, sd, df, model_strings, var_names){
   
   print(klds);print(ws);print(time)
   
-  write("text to print to HTCondor standard out file", stdout())
+  #write("text to print to HTCondor standard out file", stdout())
+  
   # n_eff and rhat
   # f <- ls(pattern = "converge_", all.names = T)
   # converge <- do.call(rbind, mget(f))
@@ -241,7 +242,7 @@ alz <- function(rep, c, ni, nj, sd, df, model_strings, var_names){
   print(paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_sd", sd, "_sigma", sigma, "_kld"))
   print(paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_sd", sd, "_sigma", sigma, "_time"))
   
-  write("text to print to HTCondor standard out file", stdout())
+  #write("text to print to HTCondor standard out file", stdout())
   
   save(list = c(paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_sd", sd, "_sigma", sigma, "_ws"), 
                 paste0("rep_", rep, "_seed", c, "_", ni, "_", nj, "_sd", sd, "_sigma", sigma, "_kld"),

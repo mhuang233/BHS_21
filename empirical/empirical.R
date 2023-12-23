@@ -8,7 +8,7 @@ library(kableExtra)
 library(bayesplot)
 options(mc.cores = parallel::detectCores())
 
-set.seed(53706)
+set.seed(53705)
 # data
 df0 <- read.csv("pisa2018.BayesBook.csv")
 
@@ -23,22 +23,25 @@ df <- df0 %>%
 sch <- table(df$SchoolID)
 dt0  <- subset(df, SchoolID %in% names(sch[sch > 10]))
 
-
 # check
 library(tidyverse)
 
 dt0 %>%
   group_by(SchoolID)%>%
-  summarise(n=n()) # 84 in total
+  summarise(n=n()) # 148 in total
 
 #===============================#
 ### ::: For reduced sample::: ###
 #===============================#
-# randomly select 15 students in each group
+# randomly select 10 students in each group
 dt <- dt0 %>% group_by(SchoolID) %>% slice_sample(n = 10)
+SchID <- dt$SchoolID 
+unique_sch <- unique(dt$SchoolID)
 
-df <- dt[401:600, ]
+sch_sample <- sample(unique_sch, 50)
+sch_index <- which(SchID %in% sch_sample)
 
+df <- dt[sch_index, ]
 
 # model fitting
 bsm <- list()
