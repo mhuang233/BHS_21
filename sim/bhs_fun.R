@@ -175,7 +175,6 @@ alz <- function(rep, c, ni, nj, icc, df, model_strings, var_names){
   lpd_point <- do.call(cbind, lapply(loo_bms, extract_lpd))
   K <- ncol(lpd_point)
   
-  
   #loo_bms <- lapply(bms_all, loo, cores = 4)
 
   dt_bhs <- list(N = N, d = d, K = K, X = X, 

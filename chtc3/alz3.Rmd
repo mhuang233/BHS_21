@@ -65,7 +65,9 @@ p <- data.frame(model = c("M1", "M5", "M11", "M15", "M12",
 ws_mean <- p[c(1, 9, 13, 15, 2,
                      6, 8, 10, 12, 14,
                      3, 5, 7, 11, 4), ] %>% 
-  pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "weights")
+  pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "weights") %>% 
+  mutate(icc = ifelse(sd == 1.667, 0.1, 
+                      ifelse(sd == 2.041, 0.2, 0.3)))
 
 
 ws_sd <- ws %>% apply(., 1:2, sd) %>% round(3)
@@ -80,14 +82,20 @@ kld_dist <- klds %>% apply(., 2:3, mean) %>% as.data.frame() %>%
   mutate(methods = rownames(.)) %>% 
   pivot_longer(cols = !methods, names_to = "index", values_to = "kld_mean") %>% 
   mutate(N = rep(ni*nj, nrow(.)), sd = rep(sd, nrow(.))) %>% 
-  select(!index)
+  select(!index)%>% 
+  mutate(icc = ifelse(sd == 1.667, 0.1, 
+                      ifelse(sd == 2.041, 0.2, 0.3)))
   
 kld_mean <- klds %>% apply(., 1:2, mean)
 
-kld_mean <- data.frame(sd = sd, N = ni*nj, kld_mean)
-kld_sd <- klds %>% apply(., 2, sd)
-kld_sd <- data.frame(sd = sd, N = ni*nj, methods =names(kld_sd), kld_sd = kld_sd)
+kld_mean <- data.frame(sd = sd, N = ni*nj, kld_mean) %>% 
+  mutate(icc = ifelse(sd == 1.667, 0.1, 
+                      ifelse(sd == 2.041, 0.2, 0.3)))
 
+kld_sd <- klds %>% apply(., 2, sd)
+kld_sd <- data.frame(sd = sd, N = ni*nj, methods =names(kld_sd), kld_sd = kld_sd) %>% 
+  mutate(icc = ifelse(sd == 1.667, 0.1, 
+                      ifelse(sd == 2.041, 0.2, 0.3)))
 
 assign(paste0("kld_dist", ni, "_", nj, "_sd", sd, "_sigma", sigma), kld_dist)
 assign(paste0("kld_all_mean", ni, "_", nj, "_sd", sd, "_sigma", sigma), kld_mean)
@@ -96,18 +104,25 @@ assign(paste0("kld_all_sd", ni, "_", nj, "_sd", sd, "_sigma", sigma), kld_sd)
 times <- mget(intersect(ls(pattern = paste0("time_")), ls(pattern = paste0(ni, "_", nj, "_sd", sd, "_sigma", sigma))))%>%
       abind(along = 3)
 time_all_mean <- times %>% apply(., 1:2, mean) %>% as.data.frame()
-time_mean <- data.frame(sd = sd, N = ni*nj, time_all_mean[1,])
-# time_sd <- times %>% apply(., 1:2, sd)
+time_mean <- data.frame(sd = sd, N = ni*nj, time_all_mean[,1])%>% 
+  mutate(icc = ifelse(sd == 1.667, 0.1, 
+                      ifelse(sd == 2.041, 0.2, 0.3))) %>% 
+  mutate(methods = c("bs", "pbma", "pbmabb", "bhs"))
+
+# rownames(time_mean) <- c("bs", "pbma", "pbmabb", "bhs")
+colnames(time_mean) <- c("sd", "N", "time_mean", "icc", "methods")
+time_sd <- times %>% apply(., 1:2, sd)
 
 assign(paste0("time_all_mean", ni, "_", nj, "_sd", sd, "_sigma", sigma), time_mean[1, ])
 # assign(paste0("time_all_sd", ni, "_", nj, "_sd", sd, "_sigma", sigma), time_sd)
 
 out <- list("ws_mean" = ws_mean, "ws_sd" = ws_sd, "kld_dist" = kld_dist,
-            "kld_mean" = kld_mean, "kld_sd" = kld_sd, "time_mean" = time_mean[1, ])
+            "kld_mean" = kld_mean, "kld_sd" = kld_sd, "time_mean" = time_mean)
 return(out)
 
 }
 
+# ni = 50;nj = 10;sd = 2.041;sigma = 0
 
 ```
 
@@ -123,7 +138,6 @@ d <- alz(ni = 150, nj = 30, sd = 2.041, sigma = 0)
 
 e <- alz(ni = 50, nj = 10, sd = 5, sigma = 0)
 f <- alz(ni = 150, nj = 30, sd = 5, sigma = 0)
-
 
 ```
 
@@ -187,19 +201,19 @@ p1 <- ws_sigma0 %>% ggplot() +
   geom_bar(aes(x = factor(model, levels = mod_labels), 
                y = weights, fill = methods),
            position = "stack", stat = "identity") +
-  facet_grid(N~sd, labeller = label_both) + 
+  facet_grid(N~icc, labeller = label_both) + 
  theme_bw()+labs(x = "models")
 
 p2 <- ws_sigma5 %>% ggplot() +
   geom_bar(aes(x = factor(model, levels = mod_labels), y = weights, fill = methods),
            position = "stack", stat = "identity")+
-  facet_grid(N~sd, labeller = label_both)+
+  facet_grid(N~icc, labeller = label_both)+
   theme_bw()+labs(x = "models")
 
 p3 <- ws_sigma10 %>% ggplot() +
   geom_bar(aes(x = factor(model, levels = mod_labels), y = weights, fill = methods),
            position = "stack", stat = "identity")+
-  facet_grid(N~sd, labeller = label_both)+
+  facet_grid(N~icc, labeller = label_both)+
   theme_bw()+labs(x = "models")
 
 p1
@@ -213,25 +227,29 @@ hei <- 1989
 # ggsave("ws_sigma5.png", plot = p2, width = wid, height = hei, limitsize = FALSE)
 
 ```
-## in case they want blackand white requirement
+## in case they want black and white plots
 ```{r}
 ws_sigma0 %>% ggplot() +
   geom_bar(aes(x = model, y = weights, fill = methods),
            position = "stack", stat = "identity")+
   scale_fill_brewer(type = "seq", palette = "Greys")+
-  theme_bw()
+  facet_grid(N~icc, labeller = label_both)+
+  theme_bw()+labs(x = "models")
 
 ws_sigma5 %>% ggplot() +
   geom_bar(aes(x = model, y = weights, fill = methods),
            position = "stack", stat = "identity")+
   scale_fill_brewer(type = "seq", palette = "Greys")+
-  theme_bw()
+    facet_grid(N~icc, labeller = label_both)+
+  theme_bw()+labs(x = "models")
+
 
 ws_sigma10 %>% ggplot() +
   geom_bar(aes(x = model, y = weights, fill = methods),
            position = "stack", stat = "identity")+
   scale_fill_brewer(type = "seq", palette = "Greys")+
-  theme_bw()
+  facet_grid(N~icc, labeller = label_both)+
+  theme_bw()+labs(x = "models")
 
 
 ```
@@ -254,13 +272,6 @@ mean_kld10 <- rbind(m$kld_mean, n$kld_mean, o$kld_mean,
                    p$kld_mean, q$kld_mean, r$kld_mean)%>% 
   pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "kld_mean") %>% 
   mutate(kld_mean = round(kld_mean, 10)) 
-
-#round_kld0 <- mean_kld0 %>% 
-#  mutate(kl_mean = round(kld_mean, 6)) %>% select(!kld_mean)
-
-#round_kld5 <- mean_kld5 %>% 
-#  mutate(kl_mean = round(kld_mean, 6)) %>% select(!kld_mean)
-
 
 # sd of klds
 sd_kld0 <- rbind(a$kld_sd, b$kld_sd, c$kld_sd, 
@@ -289,10 +300,6 @@ dist_kld10 <- rbind(m$kld_dist, n$kld_dist, o$kld_dist,
 mean_kld0 %>% kable(., caption = "sigma0") %>% kable_styling()
 mean_kld5 %>% kable(., caption = "sigma5") %>% kable_styling()
 mean_kld10 %>% kable(., caption = "sigma10") %>% kable_styling()
-
-### round the mean of kld
-#round_kld0 %>% kable(., caption = "sigma0") %>% kable_styling()
-#round_kld5 %>% kable(., caption = "sigma5") %>% kable_styling()
 ```
 
 ## SD of klds
@@ -305,38 +312,90 @@ sd_kld10 %>% kable(., caption = "sigma10") %>% kable_styling()
 
 # boxplot 
 ```{r}
-dist_kld0 %>% ggplot() +
-  geom_boxplot(aes(x = methods, y = kld_mean))+
-  facet_grid(N ~ sd)+
+d0 <- dist_kld0 %>% ggplot() +
+  geom_boxplot(aes(x = methods, y = kld_mean, fill = methods))+
+  facet_grid(N ~ icc, labeller = label_both)+
   theme_bw() + labs(y = "KLD", x = "Methods")
 
-dist_kld5 %>% ggplot() +
-  geom_boxplot(aes(x = methods, y = kld_mean))+
-  facet_grid(N ~ sd)+
+d5 <- dist_kld5 %>% ggplot() +
+  geom_boxplot(aes(x = methods, y = kld_mean, fill = methods))+
+  facet_grid(N ~ icc, labeller = label_both)+
   theme_bw() + labs(y = "KLD", x = "Methods")
 
-dist_kld10 %>% ggplot() +
-  geom_boxplot(aes(x = methods, y = kld_mean))+
-  facet_grid(N ~ sd)+
+d10 <- dist_kld10 %>% ggplot() +
+  geom_boxplot(aes(x = methods, y = kld_mean, fill = methods))+
+  facet_grid(N ~ icc, labeller = label_both)+
   theme_bw() + labs(y = "KLD", x = "Methods")
+
+
+d0
+d5
+d10
+
+ggsave("dk0.png", plot = d0,limitsize = FALSE)
+ggsave("dk5.png", plot = d5, limitsize = FALSE)
+ggsave("dk10.png", plot = d10, limitsize = FALSE)
+ 
+
+
   
 ```
 
 # time
 ```{r}
 time0 <- rbind(a$time_mean, b$time_mean, c$time_mean, 
-                   d$time_mean, e$time_mean, f$time_mean) %>% 
-  pivot_longer(bs:bhs., names_to = "methods", values_to = "time")
+                   d$time_mean, e$time_mean, f$time_mean) 
 
 time5 <- rbind(g$time_mean, h$time_mean, i$time_mean, 
-                   j$time_mean, k$time_mean, l$time_mean)%>% 
-  pivot_longer(bs.:bhs., names_to = "methods", values_to = "time")
+                    j$time_mean, k$time_mean, l$time_mean)
+# %>% pivot_longer(bs.:bhs., names_to = "methods", values_to = "time")
 
 time10 <- rbind(m$time_mean, n$time_mean, o$time_mean, 
-                p$time_mean, q$time_mean, r$time_mean)%>% 
-  pivot_longer(bs.:bhs., names_to = "methods", values_to = "time")
+               p$time_mean, q$time_mean, r$time_mean)
+# %>% pivot_longer(bs.:bhs., names_to = "methods", values_to = "time")
+
+time0 %>% kable(., caption = "sigma0") %>% kable_styling()
+time5 %>% kable(., caption = "sigma0") %>% kable_styling()
+time10 %>% kable(., caption = "sigma0") %>% kable_styling()
 
 ```
 
+# Plot time
+
+```{r}
+t0 <- ggplot(time0, aes(x=methods, y=time_mean)) +
+  geom_segment(aes(x=methods, xend=methods, y=0, yend=time_mean), color="skyblue") +
+  facet_grid(N ~ icc, labeller = label_both)+
+  geom_point( color="blue", size=2, alpha=0.8) +
+  theme_light() +
+  coord_flip() +
+theme_bw() + labs(y = "Avg.Time", x = "Methods")
+
+t5 <- ggplot(time5, aes(x=methods, y=time_mean)) +
+  geom_segment(aes(x=methods, xend=methods, y=0, yend=time_mean), color="skyblue") +
+  facet_grid(N ~ icc, labeller = label_both)+
+  geom_point( color="blue", size=2, alpha=0.8) +
+  theme_light() +
+  coord_flip() +
+theme_bw() + labs(y = "Avg.Time", x = "Methods")
+ 
+ t10 <- ggplot(time10, aes(x=methods, y=time_mean)) +
+  geom_segment(aes(x=methods, xend=methods, y=0, yend=time_mean), color="skyblue") +
+  facet_grid(N ~ icc, labeller = label_both)+
+  geom_point( color="blue", size=2, alpha=0.8) +
+  theme_light() +
+  coord_flip() +
+theme_bw() + labs(y = "Avg.Time", x = "Methods") 
+
+t0
+t5
+t10
+
+ggsave("t0.png", plot = t0,limitsize = FALSE)
+ggsave("t5.png", plot = t5, limitsize = FALSE)
+ggsave("t10.png", plot = t10, limitsize = FALSE)
+ 
+ 
+```
 
 
