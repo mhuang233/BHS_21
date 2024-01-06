@@ -57,17 +57,24 @@ ws <- mget(intersect(ls(pattern = paste0("ws_")), ls(pattern = paste0(ni, "_", n
       abind(along = 3)
 
 o <- ws %>% apply(., 1:2, mean) %>% round(3)
-p <- data.frame(model = c("M1", "M5", "M11", "M15", "M12", 
+p <- data.frame(Model = c("M1", "M5", "M11", "M15", "M12", 
                        "M6", "M13", "M7", "M2", "M8", 
                        "M14", "M9", "M3", "M10", "M4"), 
                       N = rep(ni*nj, 15),
                       sd = rep(sd, 15), o)
+
 ws_mean <- p[c(1, 9, 13, 15, 2,
                      6, 8, 10, 12, 14,
                      3, 5, 7, 11, 4), ] %>% 
-  pivot_longer(cols = bs:bhs, names_to = "methods", values_to = "weights") %>% 
+  pivot_longer(cols = bs:bhs, names_to = "Methods", values_to = "Weights") %>% 
   mutate(icc = ifelse(sd == 1.667, 0.1, 
                       ifelse(sd == 2.041, 0.2, 0.3)))
+
+ws_mean[ws_mean == "pbmabb"] <- "PBMAPLUS"
+ws_mean[ws_mean == "bs"] <- "BS"
+ws_mean[ws_mean == "bhs"] <- "BHS"
+ws_mean[ws_mean == "pbma"] <- "PBMA"
+ws_mean$Methods <- factor(ws_mean$Methods, levels = c("BS", "BHS", "PBMA", "PBMAPLUS"))
 
 
 ws_sd <- ws %>% apply(., 1:2, sd) %>% round(3)
@@ -84,8 +91,15 @@ kld_dist <- klds %>% apply(., 2:3, mean) %>% as.data.frame() %>%
   mutate(N = rep(ni*nj, nrow(.)), sd = rep(sd, nrow(.))) %>% 
   select(!index)%>% 
   mutate(icc = ifelse(sd == 1.667, 0.1, 
-                      ifelse(sd == 2.041, 0.2, 0.3)))
-  
+                      ifelse(sd == 2.041, 0.2, 0.3))) 
+
+kld_dist[kld_dist == "pbmabb"] <- "PBMAPLUS"
+kld_dist[kld_dist == "bs"] <- "BS"
+kld_dist[kld_dist == "bhs"] <- "BHS"
+kld_dist[kld_dist == "pbma"] <- "PBMA"
+kld_dist$methods <- factor(kld_dist$methods, levels = c("BS", "BHS", "PBMA", "PBMAPLUS"))
+kld_dist$Methods <- kld_dist$methods
+
 kld_mean <- klds %>% apply(., 1:2, mean)
 
 kld_mean <- data.frame(sd = sd, N = ni*nj, kld_mean) %>% 
@@ -93,7 +107,7 @@ kld_mean <- data.frame(sd = sd, N = ni*nj, kld_mean) %>%
                       ifelse(sd == 2.041, 0.2, 0.3)))
 
 kld_sd <- klds %>% apply(., 2, sd)
-kld_sd <- data.frame(sd = sd, N = ni*nj, methods =names(kld_sd), kld_sd = kld_sd) %>% 
+kld_sd <- data.frame(sd = sd, N = ni*nj, methods = names(kld_sd), kld_sd = kld_sd) %>% 
   mutate(icc = ifelse(sd == 1.667, 0.1, 
                       ifelse(sd == 2.041, 0.2, 0.3)))
 
@@ -107,7 +121,7 @@ time_all_mean <- times %>% apply(., 1:2, mean) %>% as.data.frame()
 time_mean <- data.frame(sd = sd, N = ni*nj, time_all_mean[,1])%>% 
   mutate(icc = ifelse(sd == 1.667, 0.1, 
                       ifelse(sd == 2.041, 0.2, 0.3))) %>% 
-  mutate(methods = c("bs", "pbma", "pbmabb", "bhs"))
+  mutate(Methods = c("bs", "pbma", "pbmabb", "bhs"))
 
 # rownames(time_mean) <- c("bs", "pbma", "pbmabb", "bhs")
 colnames(time_mean) <- c("sd", "N", "time_mean", "icc", "methods")
@@ -122,7 +136,7 @@ return(out)
 
 }
 
-# ni = 50;nj = 10;sd = 2.041;sigma = 0
+ni = 50;nj = 10;sd = 2.041;sigma = 0
 
 ```
 
@@ -175,16 +189,16 @@ r <- alz(ni = 150, nj = 30, sd = 5, sigma = 10)
 
 ws_sigma0 <- rbind(a$ws_mean, b$ws_mean, c$ws_mean, 
                    d$ws_mean, e$ws_mean, f$ws_mean) %>% 
-  mutate(methods = recode(methods, 'pbmabb' = 'pbmaplus'))
+  mutate(methods = recode(Methods, 'pbmabb' = 'pbmaplus'))
   
 
 ws_sigma5 <- rbind(g$ws_mean, h$ws_mean, i$ws_mean, 
                    j$ws_mean, k$ws_mean, l$ws_mean)%>% 
-  mutate(methods = recode(methods, 'pbmabb' = 'pbmaplus'))
+  mutate(methods = recode(Methods, 'pbmabb' = 'pbmaplus'))
 
 ws_sigma10 <- rbind(m$ws_mean, n$ws_mean, o$ws_mean, 
                    p$ws_mean, q$ws_mean, r$ws_mean)%>% 
-  mutate(methods = recode(methods, 'pbmabb' = 'pbmaplus'))
+  mutate(methods = recode(Methods, 'pbmabb' = 'pbmaplus'))
 
 ws_sigma0 %>% kable() %>% kable_styling()
 ws_sigma5 %>% kable() %>% kable_styling()
@@ -198,23 +212,23 @@ ws_sigma10 %>% kable() %>% kable_styling()
 mod_labels <- c("M1","M2","M3","M4","M5","M6","M7","M8","M9","M10","M11","M12","M13","M14","M15")
 
 p1 <- ws_sigma0 %>% ggplot() +
-  geom_bar(aes(x = factor(model, levels = mod_labels), 
-               y = weights, fill = methods),
+  geom_bar(aes(x = factor(Model, levels = mod_labels), 
+               y = Weights, fill = Methods),
            position = "stack", stat = "identity") +
   facet_grid(N~icc, labeller = label_both) + 
- theme_bw()+labs(x = "models")
+ theme_bw()+labs(x = "Models")
 
 p2 <- ws_sigma5 %>% ggplot() +
-  geom_bar(aes(x = factor(model, levels = mod_labels), y = weights, fill = methods),
+  geom_bar(aes(x = factor(Model, levels = mod_labels), y = Weights, fill = Methods),
            position = "stack", stat = "identity")+
   facet_grid(N~icc, labeller = label_both)+
-  theme_bw()+labs(x = "models")
+  theme_bw()+labs(x = "Models")
 
 p3 <- ws_sigma10 %>% ggplot() +
-  geom_bar(aes(x = factor(model, levels = mod_labels), y = weights, fill = methods),
+  geom_bar(aes(x = factor(Model, levels = mod_labels), y = Weights, fill = Methods),
            position = "stack", stat = "identity")+
   facet_grid(N~icc, labeller = label_both)+
-  theme_bw()+labs(x = "models")
+  theme_bw()+labs(x = "Models")
 
 p1
 p2
@@ -223,21 +237,21 @@ p3
 wid <- 3456
 hei <- 1989
 
-# ggsave("ws_sigma0.png", plot = p1, width = wid, height = hei, limitsize = FALSE)
-# ggsave("ws_sigma5.png", plot = p2, width = wid, height = hei, limitsize = FALSE)
+#ggsave("ws_sigma0.png", plot = p1, width = wid, height = hei, limitsize = FALSE)
+#ggsave("ws_sigma5.png", plot = p2, width = wid, height = hei, limitsize = FALSE)
 
 ```
 ## in case they want black and white plots
 ```{r}
 ws_sigma0 %>% ggplot() +
-  geom_bar(aes(x = model, y = weights, fill = methods),
+  geom_bar(aes(x = Model, y = Weights, fill = Methods),
            position = "stack", stat = "identity")+
   scale_fill_brewer(type = "seq", palette = "Greys")+
   facet_grid(N~icc, labeller = label_both)+
   theme_bw()+labs(x = "models")
 
 ws_sigma5 %>% ggplot() +
-  geom_bar(aes(x = model, y = weights, fill = methods),
+  geom_bar(aes(x = Model, y = Weights, fill = Methods),
            position = "stack", stat = "identity")+
   scale_fill_brewer(type = "seq", palette = "Greys")+
     facet_grid(N~icc, labeller = label_both)+
@@ -245,7 +259,7 @@ ws_sigma5 %>% ggplot() +
 
 
 ws_sigma10 %>% ggplot() +
-  geom_bar(aes(x = model, y = weights, fill = methods),
+  geom_bar(aes(x = Model, y = Weights, fill = Methods),
            position = "stack", stat = "identity")+
   scale_fill_brewer(type = "seq", palette = "Greys")+
   facet_grid(N~icc, labeller = label_both)+
@@ -313,31 +327,32 @@ sd_kld10 %>% kable(., caption = "sigma10") %>% kable_styling()
 # boxplot 
 ```{r}
 d0 <- dist_kld0 %>% ggplot() +
-  geom_boxplot(aes(x = methods, y = kld_mean, fill = methods))+
+  geom_boxplot(aes(x = methods, y = kld_mean, fill = Methods))+
   facet_grid(N ~ icc, labeller = label_both)+
   theme_bw() + labs(y = "KLD", x = "Methods")
 
 d5 <- dist_kld5 %>% ggplot() +
-  geom_boxplot(aes(x = methods, y = kld_mean, fill = methods))+
+  geom_boxplot(aes(x = methods, y = kld_mean, fill = Methods))+
   facet_grid(N ~ icc, labeller = label_both)+
   theme_bw() + labs(y = "KLD", x = "Methods")
 
 d10 <- dist_kld10 %>% ggplot() +
-  geom_boxplot(aes(x = methods, y = kld_mean, fill = methods))+
+  geom_boxplot(aes(x = methods, y = kld_mean, fill = Methods))+
   facet_grid(N ~ icc, labeller = label_both)+
   theme_bw() + labs(y = "KLD", x = "Methods")
-
 
 d0
 d5
 d10
 
-ggsave("dk0.png", plot = d0,limitsize = FALSE)
-ggsave("dk5.png", plot = d5, limitsize = FALSE)
-ggsave("dk10.png", plot = d10, limitsize = FALSE)
- 
+wid <- 9.29
+hei <- 4.30
 
+ggsave("dk0.png", plot = d0, width = wid, height = hei, limitsize = FALSE)
+ggsave("dk5.png", plot = d5, width = wid, height = hei, limitsize = FALSE)
+ggsave("dk10.png", plot = d10, width = wid, height = hei, limitsize = FALSE)
 
+# ggsave("ws_sigma5.png", plot = p2, width = wid, height = hei, limitsize = FALSE)
   
 ```
 
