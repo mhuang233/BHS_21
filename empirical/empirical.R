@@ -50,22 +50,22 @@ loo_bs <- list()
 bsm[[1]] <- stan_lmer(
   PV1READ ~ Female + ESCS + HOMEPOS + ICTRES + (1 + ICTRES|SchoolID), data = df, 
   prior_intercept = student_t(3, 470, 100),
-  iter = 10000, chains = 4,
+  iter = 5000, chains = 4,
   adapt_delta=.999,thin=10)
 
 bsm[[2]] <- stan_lmer(
   PV1READ ~ JOYREAD + PISADIFF + SCREADCOMP + SCREADDIFF + (1|SchoolID),
-  data = df, prior_intercept = student_t(3, 470, 100),iter = 10000, chains = 4,
+  data = df, prior_intercept = student_t(3, 470, 100),iter = 5000, chains = 4,
   adapt_delta=.999,thin=10)
 
 bsm[[3]] <- stan_lmer(
   PV1READ ~ METASUM + GFOFAIL + MASTGOAL + SWBP + WORKMAST + ADAPTIVITY + COMPETE + (1|SchoolID),
-  data = df, prior_intercept = student_t(3, 470, 100),iter = 10000, chains = 4,
+  data = df, prior_intercept = student_t(3, 470, 100),iter = 5000, chains = 4,
   adapt_delta=.999,thin=10)
 
 bsm[[4]] <- stan_lmer(
   PV1READ ~ PERFEED + TEACHINT + BELONG + (1 + TEACHINT|SchoolID),
-  data = df, prior_intercept = student_t(3, 470, 100),iter = 10000, chains = 4,
+  data = df, prior_intercept = student_t(3, 470, 100),iter = 5000, chains = 4,
   adapt_delta=.999,thin=10)
 
 
@@ -169,13 +169,13 @@ colnames(wr) <- c("bs","pbma", "pbmabb", "bhs")
 
 klds <- rbind(kld1, kld2, kld3, kld4)
 
-
+save(lpd_point, fit_bhs, wr, klds, bsm, loo_bs, 
+     file = "real_input.RData")
 
 
 #===============================#
  ### ::: For full sample ::: ###
 #===============================#
-
 
 df <- df0 %>%
   dplyr::select(SchoolID, CNTSTUID, Female, ESCS, METASUM, PERFEED, HOMEPOS, 
