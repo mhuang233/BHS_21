@@ -310,9 +310,7 @@ colnames(wr_full) <- c("bs","pbma", "pbmabb", "bhs")
 
 klds_full <- rbind(kld1, kld2, kld3, kld4)
 
-wr
-wr_full
+wr;wr_full
 
-klds
-klds_full
+klds;klds_full
 
