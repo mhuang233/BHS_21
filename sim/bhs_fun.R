@@ -30,8 +30,8 @@ dgf <- function(ni, nj, gamma00, gamma01, gamma02, gamma03, gamma04, gamma05,
     U[i,2] <- I[1,2]*U[i,1] + I[2,2]*rnorm(1)
     U[i,3] <- I[1,3]*U[i,1] + I[1,2]*U[i,2] + I[3,3]*rnorm(1)
     
-    x[i, 4] <- rbinom(1, 1, .5) # public
-    x[i, 5] <- rnorm(1, .15, 1) # ict
+    x[i, 4] <- rbinom(1, 1, .5) 
+    x[i, 5] <- rnorm(1, .15, 1) 
     
     # For inner loop or the micro level
     for (j in 1:nj){
@@ -48,13 +48,11 @@ dgf <- function(ni, nj, gamma00, gamma01, gamma02, gamma03, gamma04, gamma05,
       for (j in 1:nj) {
         
         # For response and error
-        
         r[ind, 1] <- sigma*rnorm(1, 0, 1)
         y[ind, 1] <- gamma00 + gamma01*x[j,1] + gamma02*x[j,2] + gamma03*x[j,3] + gamma04*x[j,4] + gamma05*x[j,5] +
            U[i,1] + U[i,2]*x[i,4] + U[i,3]*x[i,5] + r[ind, 1]
         
-        # Pull out the data
-        
+        # Pull out the generated data
         tmp <- c(i, j, y[ind, 1], x[j, 1], x[j, 2], x[j, 3], x[j, 4], x[j, 5], U[i,1], U[i, 2], U[i, 3], r[ind, 1])
         
         sim[ind, ] <- tmp
@@ -77,7 +75,7 @@ dgf <- function(ni, nj, gamma00, gamma01, gamma02, gamma03, gamma04, gamma05,
 
 alz_all <- function(rep, c, ni, nj, icc, df1, df2, cov1, cov3){
   
-  # ::: stack all models ::: #
+  # ::: stack all the models ::: #
   
   for (k in 1:15){
     
@@ -173,7 +171,6 @@ alz_all <- function(rep, c, ni, nj, icc, df1, df2, cov1, cov3){
   kld3_all <- KLD(d3_all, d0_all)$sum.KLD.py.px
   
   # bhs
-  # Build the model
   d_discrete = 1
   X =  df2[,4:8] # 5 in total 
    
@@ -200,8 +197,6 @@ alz_all <- function(rep, c, ni, nj, icc, df1, df2, cov1, cov3){
   
   y_bhs_all <- colMeans(ypred_bhs_all)
   
-  # lpd_bhs <- lpd_point*w_bhs_r
-  
   # KLD
   d4_all <- density(y_bhs_all, kernel = c("gaussian"))$y
   kld4_all <- KLD(d4_all, d0_all)$sum.KLD.py.px
@@ -215,10 +210,6 @@ alz_all <- function(rep, c, ni, nj, icc, df1, df2, cov1, cov3){
   cnames <- c("bs","pbma", "pbmabb", "bhs")  
   rownames(klds_all) <- cnames
   colnames(ws_all) <- cnames
-  
-  # n_eff and rhat
-  #f_all <- ls(pattern = "converge_all_", all.names = T)
-  #converge_all <- do.call(rbind, mget(f_all))
   
   save(ws_all, klds_all, file = paste0(rep, "_", c, "_", ni, "_", nj, "_", icc, "_all_out.RData"))
   

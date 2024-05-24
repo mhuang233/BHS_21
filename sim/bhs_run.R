@@ -1,13 +1,12 @@
 ### ::: Run ::: ###
 {
-  #rm(list = ls())
+  rm(list = ls())
   library(loo)
   library(rstan)
   # library(gtools) for combinations
   library(rstanarm)
   library(LaplacesDemon)
   library(tidyverse)
-  
   source("bhs_fun.R")
   options(scipen = 999)
   options(mc.cores = parallel::detectCores())
@@ -33,7 +32,7 @@ sigma = as.numeric(arguments[[6]])
 
 set.seed(c)
 
-# dgf
+# dgp
 {
   ni <- ni
   nj <- nj
@@ -44,7 +43,7 @@ set.seed(c)
   gamma04 <- 8
   u_0 <- sqrt(icc)
   w_0 <- sqrt(1-icc)
-  sigma <- sigma # when sigma = 0, sigma = 5, sigma = 10, sigma = 30
+  sigma <- sigma # sigma = 0 or 5
   
   x <- matrix(99, nrow = ni*nj, ncol = 4)
   y <- matrix(99, nrow = ni*nj, ncol = 1) 
@@ -57,23 +56,13 @@ set.seed(c)
 
 df <- dgf(ni, nj, gamma00, gamma01, gamma02, gamma03, gamma04, u_0, w_0, sigma)
 
-#nr <- nrow(df)
-#df1 <- df[1:(nr/2), ]
-#df2 <- df[(nr/2+1):nr, ]
-
-# function
-#extract_lpd <- function(x){
-#  g <- loo::loo(x, r_eff = relative_eff(exp(x), chain_id = 1:nrow(x)))$pointwise
-#  return(g)
-#}
-
+# function for extract elpd
 extract_lpd <- function(x){
-  
   g <- x$pointwise[, "elpd_loo"]
   return(g)
-  
 }
 
+# elements for building the stan models
 model_strings <- c(
   "y ~ x1 + (1|i)",
   "y ~ x2 + (1|i)",

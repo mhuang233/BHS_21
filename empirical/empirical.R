@@ -1,13 +1,13 @@
-### :::::: Real Data Reduced Sample Size :::::: ###
-### ====== HLM HS ====== ###
-library(loo)
-library(rstanarm)
-library(rstan)
-library(LaplacesDemon)
-library(kableExtra)
-library(bayesplot)
-options(mc.cores = parallel::detectCores())
-
+### :::::: Real Data Analysis :::::: ###
+{
+  library(loo)
+  library(rstanarm)
+  library(rstan)
+  library(LaplacesDemon)
+  library(kableExtra)
+  library(bayesplot)
+  options(mc.cores = parallel::detectCores())
+}
 set.seed(53705)
 # data
 df0 <- read.csv("pisa2018.BayesBook.csv")
@@ -68,7 +68,6 @@ bsm[[4]] <- stan_lmer(
   data = df, prior_intercept = student_t(3, 470, 100),iter = 5000, chains = 4,
   adapt_delta=.999,thin=10)
 
-
 # loo and weights
 loo_bs[[1]] <- loo(log_lik(bsm[[1]]))
 loo_bs[[2]] <- loo(log_lik(bsm[[2]]))
@@ -103,13 +102,11 @@ d0 <- density(df$PV1READ, kernel = c("gaussian"))$y
 kld1 <- KLD(d1, d0)$sum.KLD.py.px
 
 # pbma
-
 ypred_bma <- matrix(NA, nrow = n_draws, ncol = nobs(bsm[[1]]))
 for (d in 1:n_draws) {
   k <- sample(1:length(w_pbma), size = 1, prob = w_pbma)
   ypred_bma[d, ] <- posterior_predict(bsm[[k]], draws = 1)
 }
-
 
 y_bma <- colMeans(ypred_bma)
 d2 <- density(y_bma, kernel = c("gaussian"))$y
@@ -122,14 +119,11 @@ for (d in 1:n_draws) {
   ypred_bmabb[d, ] <- posterior_predict(bsm[[k]], draws = 1)
 }
 
-
 y_bmabb <- colMeans(ypred_bmabb)
 d3 <- density(y_bmabb, kernel = c("gaussian"))$y
 kld3 <- KLD(d3, d0)$sum.KLD.py.px
 
-
 ### ::: For BHS ::: ###
-# Build the model
 d_discrete = 1
 X =  df[, c("ESCS","HOMEPOS","ICTRES",
             "JOYREAD","PISADIFF","SCREADCOMP","SCREADDIFF",
@@ -156,14 +150,11 @@ for (d in 1:n_draws) {
 
 y_bhs_r <- colMeans(ypred_bhs_r)
 
-# lpd_bhs <- lpd_point*w_bhs_r
-
 # KLD
 d4 <- density(y_bhs_r, kernel = c("gaussian"))$y
 kld4 <- KLD(d4, d0)$sum.KLD.py.px
 
-
-# summarize the weights and lpd
+# summarize the weights
 wr <- data.frame(as.matrix(w_bs), as.matrix(w_pbma), as.matrix(w_pbmabb), w_bhs_m)
 colnames(wr) <- c("bs","pbma", "pbmabb", "bhs")
 
@@ -171,7 +162,6 @@ klds <- rbind(kld1, kld2, kld3, kld4)
 
 save(lpd_point, fit_bhs, wr, klds, bsm, loo_bs, 
      file = "real_input.RData")
-
 
 #===============================#
  ### ::: For full sample ::: ###
@@ -208,9 +198,7 @@ bsm[[4]] <- stan_lmer(
   data = dt, prior_intercept = student_t(3, 470, 100),iter = 10000, chains = 4,
   adapt_delta=.999,thin=10)
 
-
 # loo and weights
-
 loo_bs[[1]] <- loo(log_lik(bsm[[1]]))
 loo_bs[[2]] <- loo(log_lik(bsm[[2]]))
 loo_bs[[3]] <- loo(log_lik(bsm[[3]]))
@@ -227,8 +215,7 @@ lpd_point <- as.matrix(cbind(loo_bs[[1]]$pointwise[, "elpd_loo"],
                              loo_bs[[3]]$pointwise[, "elpd_loo"],
                              loo_bs[[4]]$pointwise[, "elpd_loo"]))
 
-
-# kld
+# klds
 # bs
 n_draws <- nrow(as.matrix(bsm[[1]]));print(n_draws)
 ypred_bs <- matrix(NA, nrow = n_draws, ncol = nobs(bsm[[1]]))
@@ -237,20 +224,17 @@ for (d in 1:n_draws) {
   ypred_bs[d, ] <- posterior_predict(bsm[[k]], draws = 1)
 }
 
-
 y_bs <- colMeans(ypred_bs)
 d1 <- density(y_bs, kernel = c("gaussian"))$y
 d0 <- density(df$PV1READ, kernel = c("gaussian"))$y
 kld1 <- KLD(d1, d0)$sum.KLD.py.px
 
 # pbma
-
 ypred_bma <- matrix(NA, nrow = n_draws, ncol = nobs(bsm[[1]]))
 for (d in 1:n_draws) {
   k <- sample(1:length(w_pbma), size = 1, prob = w_pbma)
   ypred_bma[d, ] <- posterior_predict(bsm[[k]], draws = 1)
 }
-
 
 y_bma <- colMeans(ypred_bma)
 d2 <- density(y_bma, kernel = c("gaussian"))$y
@@ -263,14 +247,11 @@ for (d in 1:n_draws) {
   ypred_bmabb[d, ] <- posterior_predict(bsm[[k]], draws = 1)
 }
 
-
 y_bmabb <- colMeans(ypred_bmabb)
 d3 <- density(y_bmabb, kernel = c("gaussian"))$y
 kld3 <- KLD(d3, d0)$sum.KLD.py.px
 
-
 ### ::: For BHS ::: ###
-# Build the model
 d_discrete = 1
 X =  dt[, c("ESCS","HOMEPOS","ICTRES",
             "JOYREAD","PISADIFF","SCREADCOMP","SCREADDIFF",
@@ -297,12 +278,9 @@ for (d in 1:n_draws) {
 
 y_bhs_r <- colMeans(ypred_bhs_r)
 
-# lpd_bhs <- lpd_point*w_bhs_r
-
 # KLD
 d4 <- density(y_bhs_r, kernel = c("gaussian"))$y
 kld4 <- KLD(d4, d0)$sum.KLD.py.px
-
 
 # summarize the weights and lpd
 wr_full <- data.frame(as.matrix(w_bs), as.matrix(w_pbma), as.matrix(w_pbmabb), w_bhs_m)
