@@ -11,13 +11,13 @@
 dgf <- function(ni, nj, gamma00, gamma01, gamma02, gamma03, gamma04, gamma05,
                 u_0, u_1, u_2, w_0, w_1, w_2, sigma){
   
-  # For random effects and ICC
+  # For random effects
   corU <- matrix(c(1, 0, 0, 0, 1, 0, 0, 0, 1), nrow = 3, ncol = 3, byrow = T)
   sdU <- matrix(c(u_0, 0, 0, 0, u_1, 0, 0, 0, u_2), nrow = 3, ncol = 3, byrow = T)
   covU <- sdU%*%corU%*%sdU
   I <- covU
   
-  # For fixed effects and ICC
+  # For fixed effects
   corW <- matrix(c(1, 0, 0, 0, 1, 0, 0, 0, 1), nrow = 3, ncol = 3, byrow = T)
   sdW <- matrix(c(w_0, 0, 0, 0, w_1, 0, 0, 0, w_2), nrow = 3, ncol = 3, byrow = T)
   covW <- sdW%*%corW%*%sdW
@@ -72,7 +72,6 @@ dgf <- function(ni, nj, gamma00, gamma01, gamma02, gamma03, gamma04, gamma05,
 
 
 # Fit, Est and Alz
-
 alz_all <- function(rep, c, ni, nj, icc, df1, df2, cov1, cov3){
   
   # ::: stack all the models ::: #
@@ -82,7 +81,7 @@ alz_all <- function(rep, c, ni, nj, icc, df1, df2, cov1, cov3){
     if (k <= 5){
       as <- stan_lm(y ~ df1[, paste0(cov1[k])], data = df1, 
                     prior = R2(location = .5, what = 'mean'), 
-                    iter = 10000, chains = 4,
+                    iter = iter, chains = 4,
                     adapt_delta=.999,thin=10)
       
       bs <- loo(log_lik(as), r_eff = NA)
@@ -102,7 +101,7 @@ alz_all <- function(rep, c, ni, nj, icc, df1, df2, cov1, cov3){
       as <- stan_lmer(as.formula(model_string_s2), data = df1, 
                 prior_intercept = student_t(3, 400, 10), 
                 prior_covariance = decov(scale = 0.50), 
-                iter = 10000, chains = 4,
+                iter = iter, chains = 4,
                 adapt_delta=.999, thin=10)
       
       bs <- loo(log_lik(as), r_eff = NA)
@@ -130,7 +129,7 @@ alz_all <- function(rep, c, ni, nj, icc, df1, df2, cov1, cov3){
   time_all_pbmabb <- system.time(w_pbmabb_all <- loo::loo_model_weights(loos_all, method = "pseudobma"))
   
   ### for all
-  n_draws <- 4000
+  n_draws <- n_draws # based on # iteration
   ypred_bs_all <- matrix(NA, nrow = n_draws, ncol = nobs(m_all[[1]]))
   for (d in 1:n_draws) {
     k <- sample(1:length(w_bs_all), size = 1, prob = w_bs_all)
@@ -181,7 +180,7 @@ alz_all <- function(rep, c, ni, nj, icc, df1, df2, cov1, cov3){
                     tau_sigma = 1, tau_discrete = .5, tau_con = 1)
   
   time_all_bhs <- system.time(
-    fit_bhs_all <- stan("bhs_con.stan", data = dt_bhs_all, iter= 10000, chains = 4))
+    fit_bhs_all <- stan("bhs_con.stan", data = dt_bhs_all, iter= iter, chains = 4))
 
   # Obtain the weights and the softmax function
   wts_bhs_all <- rstan::extract(fit_bhs_all, pars = 'w')$w
@@ -229,11 +228,10 @@ alz_all <- function(rep, c, ni, nj, icc, df1, df2, cov1, cov3){
 
 }
 
-
 ### create arguments for CHTC ###
 # ni <- rep(c(10, 70, 10, 30, 50, 150), each = 3) # clusters
 # nj <- rep(c(10, 70, 50, 150, 10, 30), each = 3) # students
-# icc <- rep(c(.1, .2, .3), 6)
+# icc <- rep(c(.1, .15, .2), 6)
 # c <- sample(1:1000, 100)
 
 # arg <- data.frame(reps = rep(1:100, each = 18),

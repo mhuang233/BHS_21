@@ -33,6 +33,7 @@ dt0 %>%
 #===============================#
 ### ::: For reduced sample::: ###
 #===============================#
+
 # randomly select 10 students in each group
 dt <- dt0 %>% group_by(SchoolID) %>% slice_sample(n = 10)
 SchID <- dt$SchoolID 
@@ -50,22 +51,22 @@ loo_bs <- list()
 bsm[[1]] <- stan_lmer(
   PV1READ ~ Female + ESCS + HOMEPOS + ICTRES + (1 + ICTRES|SchoolID), data = df, 
   prior_intercept = student_t(3, 470, 100),
-  iter = 5000, chains = 4,
+  iter = iter, chains = 4,
   adapt_delta=.999,thin=10)
 
 bsm[[2]] <- stan_lmer(
   PV1READ ~ JOYREAD + PISADIFF + SCREADCOMP + SCREADDIFF + (1|SchoolID),
-  data = df, prior_intercept = student_t(3, 470, 100),iter = 5000, chains = 4,
+  data = df, prior_intercept = student_t(3, 470, 100),iter = iter, chains = 4,
   adapt_delta=.999,thin=10)
 
 bsm[[3]] <- stan_lmer(
   PV1READ ~ METASUM + GFOFAIL + MASTGOAL + SWBP + WORKMAST + ADAPTIVITY + COMPETE + (1|SchoolID),
-  data = df, prior_intercept = student_t(3, 470, 100),iter = 5000, chains = 4,
+  data = df, prior_intercept = student_t(3, 470, 100),iter = iter, chains = 4,
   adapt_delta=.999,thin=10)
 
 bsm[[4]] <- stan_lmer(
   PV1READ ~ PERFEED + TEACHINT + BELONG + (1 + TEACHINT|SchoolID),
-  data = df, prior_intercept = student_t(3, 470, 100),iter = 5000, chains = 4,
+  data = df, prior_intercept = student_t(3, 470, 100),iter = iter, chains = 4,
   adapt_delta=.999,thin=10)
 
 # loo and weights
@@ -134,7 +135,7 @@ stan_bhs <- list(X = X, N = nrow(X), d = ncol(X), d_discrete = d_discrete,
                  lpd_point = lpd_point, K = ncol(lpd_point), tau_mu = 1,
                  tau_sigma = 1, tau_discrete = .5, tau_con = 1)
 
-fit_bhs<- stan("bhs_stan.stan", data = stan_bhs, chains = 4, iter = 10000)
+fit_bhs<- stan("bhs_stan.stan", data = stan_bhs, chains = 4, iter = iter)
 
 # weights
 wts_bhs <- rstan::extract(fit_bhs, pars = 'w')$w
@@ -180,22 +181,22 @@ loo_bs <- list()
 bsm[[1]] <- stan_lmer(
   PV1READ ~ Female + ESCS + HOMEPOS + ICTRES + (1 + ICTRES|SchoolID), data = dt, 
   prior_intercept = student_t(3, 470, 100),
-  iter = 10000, chains = 4,
+  iter = iter, chains = 4,
   adapt_delta=.999,thin=10)
 
 bsm[[2]] <- stan_lmer(
   PV1READ ~ JOYREAD + PISADIFF + SCREADCOMP + SCREADDIFF + (1|SchoolID),
-  data = dt, prior_intercept = student_t(3, 470, 100),iter = 10000, chains = 4,
+  data = dt, prior_intercept = student_t(3, 470, 100),iter = iter, chains = 4,
   adapt_delta=.999,thin=10)
 
 bsm[[3]] <- stan_lmer(
   PV1READ ~ METASUM + GFOFAIL + MASTGOAL + SWBP + WORKMAST + ADAPTIVITY + COMPETE + (1|SchoolID),
-  data = dt, prior_intercept = student_t(3, 470, 100),iter = 10000, chains = 4,
+  data = dt, prior_intercept = student_t(3, 470, 100),iter = iter, chains = 4,
   adapt_delta=.999,thin=10)
 
 bsm[[4]] <- stan_lmer(
   PV1READ ~ PERFEED + TEACHINT + BELONG + (1 + TEACHINT|SchoolID),
-  data = dt, prior_intercept = student_t(3, 470, 100),iter = 10000, chains = 4,
+  data = dt, prior_intercept = student_t(3, 470, 100),iter = iter, chains = 4,
   adapt_delta=.999,thin=10)
 
 # loo and weights
@@ -262,7 +263,7 @@ stan_bhs <- list(X = X, N = nrow(X), d = ncol(X), d_discrete = d_discrete,
                  lpd_point = lpd_point, K = ncol(lpd_point), tau_mu = 1,
                  tau_sigma = 1, tau_discrete = .5, tau_con = 1)
 
-fit_bhs<- stan("bhs_stan.stan", data = stan_bhs, chains = 4, iter = 10000)
+fit_bhs<- stan("bhs_stan.stan", data = stan_bhs, chains = 4, iter = iter)
 
 # weights
 wts_bhs <- rstan::extract(fit_bhs, pars = 'w')$w
